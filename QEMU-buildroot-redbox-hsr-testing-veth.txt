@@ -30,6 +30,9 @@ cd ~/work/buildroot/buildroot-hsr-redbox-veth/output/images
 
 mkdir ./hsr-test/
 
+If not already mounted:
+mount -t debugfs none /sys/kernel/debug
+
 Mount the directory with HSR test scripts:
 sshfs lukma@10.0.2.2:work/linux/linux-vanila/tools/testing/selftests/net ./hsr-test/
 
