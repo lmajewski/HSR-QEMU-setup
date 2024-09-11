@@ -1,0 +1,40 @@
+#
+# Setting up environment (QEMU + Buildroot) to test HSR operation
+# with hsr_ping.sh and hsr_redbox.sh
+#
+
+1. Prepare buildroot:
+
+git clone git://git.buildroot.net/buildroot buildroot-hsr-redbox-veth
+cd buildroot-hsr-redbox-veth
+
+use QEMU-buildroot-files/dot_config-buildroot as .config   (it is qemu_x86_64_defconfig with extra tools - like bash)
+time make
+
+2. Compile kernel:
+
+Currently used: net-next/main
+SHA1: 50aee97d1511
+
+Use proper config (setup for 6.9.0-rc3) -> support for veth, HSR, netns
+cp QEMU-buildroot-files/dot_config-x86_64-qemu-buildroot .config
+
+Build kernel (toolchain from buildroot):
+CC="/home/lukma/work/buildroot/buildroot-hsr-redbox-veth/output/host/bin/x86_64-buildroot-linux-gnu-" ARCH=x86_64 make -j8 bzImage && \
+rsync -L ./arch/x86_64/boot/bzImage /home/lukma/work/buildroot/buildroot-hsr-redbox-veth/output/images/bzImage
+
+3. Run buildroot and test HSR:
+
+cd ~/work/buildroot/buildroot-hsr-redbox-veth/output/images
+./start-qemu.sh --serial-only
+
+mkdir ./hsr-test/
+
+Mount the directory with HSR test scripts:
+sshfs lukma@10.0.2.2:work/linux/linux-vanila/tools/testing/selftests/net ./hsr-test/
+
+cd ./hsr-test/hsr/
+./hsr_redbox.sh
+./hsr_ping.sh -4
+
+(exit from the QEMU with Ctrl+A X)
